@@ -20,6 +20,7 @@ from Tkinter import *
 #class
 ellis = User()
 target = info()
+putTarget = info()
 opt = option()
 ui = gui()
 item = spend()
@@ -39,51 +40,43 @@ xml = """<?xml version="1.0" encoding="UTF-8"?>
   </Order>
 </FIXML> """
 
+def run():
+
+	r = ref.get(constant.account_url)
+	func.setAccount(r.content,ellis,ui)
+	ellis.fakeCash = func.readFakeCash(fakeRaw)
+	func.buildUI(ui)
+	b.start()
+	stream.start()
+	update.start()
+	t3.start()
+	t8.start()
+	ui.top.mainloop()
+
 #main
 
 if __name__ == "__main__":
 
-	b = threading.Thread(target=func.begin, args=(target,))
-	t1 = threading.Thread(target=func.readAsk, args=(ref,target,ui.askPrice,spend))
-	t2 = threading.Thread(target=func.readBid,args=(ref,target,ui.bidPrice,spend))
+	demo = threading.Thread(target=func.tester, args=(target,putTarget))
+	update = threading.Thread(target=func.updateUI, args=(spend,target,putTarget,ui))
+	b = threading.Thread(target=func.begin, args=(target,putTarget,ref))
+	stream = threading.Thread(target=func.read_stream, args=(ui,target,putTarget))
+	#t1 = threading.Thread(target=func.readAsk, args=(ref,target,ui.askPrice,spend))
+	#t2 = threading.Thread(target=func.readBid,args=(ref,target,ui.bidPrice,spend))
+	#p1 = threading.Thread(target=func.readPutAsk, args=(ref,putTarget,ui.putaskPrice,spend))
+	#p2 = threading.Thread(target=func.readPutBid,args=(ref,putTarget,ui.putbidPrice,spend))
 	t3 = threading.Thread(target=func.findBuy,args=(target,spend,ui,ellis,fakeOut,fakeRaw))
 	#t4 = threading.Thread(target=func.calcProfit,args=(gui,spend,target))
-	t5 = threading.Thread(target=func.setMid,args=(target,gui.midPrice))
+	#t5 = threading.Thread(target=func.setMid,args=(target,gui.midPrice))
 	#t6 = threading.Thread(target=func.setState,args=(ui,target))
-	t7 = threading.Thread(target=func.changeState,args=(target,))
+	#t7 = threading.Thread(target=func.changeState,args=(target,))
 	t8 = threading.Thread(target=func.sell,args=(target,spend,gui,ellis,fakeOut,fakeRaw))
 
-	#configure account value
 
-	r = ref.get(constant.account_url)
-	func.setAccount(r.content,ellis,ui)
-	print r
-	#example buy
-
-	#r = ref.post(constant.preview_url,xml)
-	#print r.content
+	run()
 
 
-	ellis.fakeCash = func.readFakeCash(fakeRaw)
-	#print ellis.fakeCash
 
-	#func.begin(spend)
-	#func.sendemail("nguyene0821","ellisnguyen79@gmail.com","","Test","Market is open","nguyene0821","Mywifezen08+",smtpserver='smtp.gmail.com:587')
-
-	#func.buildUI(ui)
-
-	#b.start()
-	#t6.start()
-	#t1.start()
-	#t2.start()
-	#t7.start()
-	#t5.start()
-	#t3.start()
-	#t4.start()
-	#t8.start()
-
-
-	#ui.top.mainloop()
 
 
 

@@ -14,6 +14,7 @@ class info:
 	resist = 0.0
 	state = -1
 	msg = ""
+	name = ""
 
 class spend:
 	hold = 0.0
@@ -30,6 +31,10 @@ class option:
 	call = ""
 	strike = ""
 	symbol = ""
+	bidCall = ""
+	bidPut = ""
+	askCall = ""
+	askPut = ""
 
 class gui:
 	top = Tk()
@@ -41,6 +46,14 @@ class gui:
 	curLabel = Label(top, text="Cur: ",bg='grey')
 	profitLabel =  Label(top, text="Profit: ",bg='grey')
 
+	#put
+	putaskLabel = Label(top, text="ask",bg='grey')
+	putbidLabel = Label(top, text="bid",bg='grey')
+	putmidLabel = Label(top, text="mid",bg='grey')
+	putholdLabel = Label(top, text="Hold: ",bg='grey')
+	putcurLabel = Label(top, text="Cur: ",bg='grey')
+	putprofitLabel =  Label(top, text="Profit: ",bg='grey')
+
 	accountPrice = Label(top, text="0.0",bg='cyan')
 	askPrice = Label(top, text="0.0",bg='cyan')
 	bidPrice = Label(top, text="0.0",bg='cyan')
@@ -48,3 +61,14 @@ class gui:
 	holdPrice = Label(top, text="0.0",bg='cyan')
 	profitPrice = Label(top, text="0.0",bg='cyan')
 	curPrice = Label(top, text="0.0",bg='cyan')
+
+	#put
+	putaskPrice = Label(top, text="0.0",bg='cyan')
+	putbidPrice = Label(top, text="0.0",bg='cyan')
+	putmidPrice = Label(top, text="0.0",bg='cyan')
+	putholdPrice = Label(top, text="0.0",bg='cyan')
+	putprofitPrice = Label(top, text="0.0",bg='cyan')
+	putcurPrice = Label(top, text="0.0",bg='cyan')
+
+
+
