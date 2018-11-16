@@ -95,9 +95,15 @@ def begin(target,putTarget,ref):
 			if hour > 14:
 				target.state = -1
 				putTarget.state = -1
+			else:
+				print "We played already, <Mar is open!"
+				time.sleep(70)
+		if target.state == -3:
+			target.state = 0
+			putTarget.state = 0
 		if target.state == -1:
-			#if week < 5 and hour > 6 and hour < 13:
-			if(1):
+			if week < 5 and hour > 6 and hour < 13:
+			#if(1):
 				result = findNewOption(ref)
 				target.name = result[1]
 				putTarget.name = result[0]
@@ -240,45 +246,146 @@ def setSize(spend,ellis):
 	spend.size = math.floor(ellis.fakeCash / (spend.hold * 100) ) 
 	#print "Quantity size: ", spend.size
 
+def lookT(target,putTarget,spend):
+	pmaxi = 0.0
+	pmini = putTarget.bid
+	maxi = 0.0
+	mini = target.bid
+
+	while(spend.hold == 0.0):
+		b = target.mid
+		bp = putTarget.mid
+		t = target.bid
+		p = putTarget.bid
+
+		if t < mini:
+			mini = t
+
+		if t > maxi:
+			maxi = t
+
+		if p < pmini:
+			pmini = p
+
+		if p > pmaxi:
+			pmaxi = p
+
+
+		if (b - 0.05) < maxi and (b - 0.05) > mini:
+			spend.hold = b - 0.05
+		if (bp - 0.05) < pmaxi and (bp - 0.05) > pmini:
+			spend.hold = b - 0.05
+
+		time.sleep(1)
+		print "CAll Max: ", maxi
+		print "CAll Min: ", mini
+		print "PUT Max: ", pmaxi
+		print "PUT Min: ", pmini
+
 def look(target,putTarget,spend):
-	Cresist = [0.0,0.0,0.0]
-	Csupport = [11110.0,111110.0,111110.0]
-	Presist = [0.0,0.0,0.0]
-	Psupport = [0.0,0.0,0.0]
+	rise = 0
+	prise = 0
+	t = 0.0
+	p = 0.0
+	ma = 0.0
+	low = 9000.0
+	pma = 0.0
+	plow = 9000.0
 	temp = 0.0
 	prev = 0.0
 	di = {}
 	su = {}
 	re = {}
+	pdi = {}
+	psu = {}
+	pre = {}
+
 
 	while(spend.hold == 0.0):
-		temp = target.ask	
-		if temp != prev:
-			if target.ask in di:
-				di[target.ask] += 1
-			else:
-				di[target.ask] = 0
-	
-		if temp > prev:
-			if target.ask in di:
-				su[target.ask] += 1
-			else:
-				su[target.ask] = 0
-		else:
-			if target.ask in di:
-				re[target.ask] += 1
-			else:
-				re[target.ask] = 0
-		prev = target.ask
-		print "Histogram\n",di,"Support\n",su,"Resist\n",re
+		temp = target.bid	
+		t = putTarget.bid
 
-def findBuy(target,spend,gui,ellis,out,raw):
+		# CHECK MAX AND MIN
+		if t > pma:
+			pma = t
+
+		if t < plow:
+			plow = t
+
+		if temp > ma:
+			ma = temp
+
+		if temp < low:
+			print "We in"
+			low = temp
+
+
+		if temp != prev:
+			if rise == 0:
+				if temp > prev:
+					prev = temp
+				else:
+					rise = 1
+					if temp in re:
+						re[temp] += 1
+					else:
+						re[temp] = 1
+			else:
+				if temp < prev:
+					prev = temp
+				else:
+					rise = 0
+					if temp in su:
+						su[temp] += 1
+					else:
+						su[temp] = 1
+		prev = temp
+
+		if t != p:
+			if prise == 0:
+				if t > p:
+					p = t
+				else:
+					prise = 1
+					if t in pre:
+						pre[t] += 1
+					else:
+						pre[t] = 1
+			else:
+				if t < p:
+					p = t
+				else:
+					prise = 0
+					if t in psu:
+						psu[t] += 1
+					else:
+						psu[t] = 1
+		p = t
+
+
+
+		time.sleep(1)
+		print "CAll Value: ", temp
+		print "PUT Value: ", t
+		print "CAll Max: ", ma
+		print "CAll Min: ", low
+		print "PUT Max: ", pma
+		print "PUT Min: ", plow
+		print "Histogram\n",di,"\nSupport\n",su,"\nResist\n",re
+		print "\nPUT\n"
+		print "Histogram\n",pdi,"\nSupport\n",psu,"\nResist\n",pre
+		print "Past Value: ", prev
+		print "Past Value: ", p
+		print "\n\n"
+
+def findBuy(target,putTarget,spend,gui,ellis,out,raw):
 	while(1):
 		if target.state == 1:	
 
 			# DETERMINE
 
-			look(target,putTarget,spend)
+			#lookT(target,putTarget,spend)
+			spend.hold = target.mid
 
 			####
 
@@ -294,29 +401,63 @@ def findBuy(target,spend,gui,ellis,out,raw):
 			gui.curPrice.config(text=str(target.state))
 			gui.top.update()
 		if target.state == 2:
-			return
-
+			print "FindBuy is sleeping"
+			time.sleep(20)
 
 def sell(target,spend,gui,ellis,out,raw):
 	while(1):
+
+		t = target.bid
+		sh = spend.hold
+
 		if target.state == 2:
+			time.sleep(0.5)
 			spend.cost = 4.95 + (spend.size * 0.65)
-			spend.profit =  ((spend.size * 100)) * (float(target.bid) - float(spend.hold)) - (float(spend.cost) * 2)
-			time.sleep(1)
+			#print spend.cost
+			#print t
+			#print sh
+			#spend.profit =  ((spend.size * 100) * (float(t) - float(sh))) - (float(spend.cost) * 2)
+			spend.profit =   ((spend.size * 100.0) * (float(t) - float(sh))) - (float(spend.cost) * 2)
+			#print spend.profit
 			if(spend.profit > 20):	
-				target.state = -2
+				#target.state = -2 #REAL
+				target.state = -3 #TESING
+				spend.hold = 0.0
 				gui.curPrice.config(text=str(target.state))
 				gui.top.update()
 				print "Today profit is: ", spend.profit
+				spend.total += spend.profit
+				spend.win += 1
+				print "Total Win: ", spend.win
+				print "Total Lose: ", spend.lose
+				print "Total Profit: ", spend.total
 				ellis.fakeCash += spend.profit
 				target.msg = "Cash: " + str(ellis.fakeCash)
 				#sendemail("nguyene0821","ellisnguyen79@gmail.com","","Test",str(target.msg),"nguyene0821","Mywifezen08+",smtpserver='smtp.gmail.com:587')
 
 				#writeTo(raw,str(ellis.fakeCash))
 				#appendTo(out,str(spend.profit))
-		if target.state == -2:
-			return
+			if(spend.profit < -200):
+				#target.state = -2 #REAL
+				target.state = -3 #TESING
+				spend.hold = 0.0
+				gui.curPrice.config(text=str(target.state))
+				gui.top.update()
+				print "Today profit is: ", spend.profit
+				spend.total += spend.profit
+				spend.lose += 1
+				ellis.fakeCash += spend.profit
+				target.msg = "Cash: " + str(ellis.fakeCash)
+				#sendemail("nguyene0821","ellisnguyen79@gmail.com","","Test",str(target.msg),"nguyene0821","Mywifezen08+",smtpserver='smtp.gmail.com:587')
+				print "Total Win: ", spend.win
+				print "Total Lose: ", spend.lose
+				print "Total Profit: ", spend.total
+				#writeTo(raw,str(ellis.fakeCash))
+				#appendTo(out,str(spend.profit))
 
+		if target.state == -2:
+			print "sell is sleeping"
+			time.sleep(20)
 
 def calcProfit(gui,spend,target):
 	while(1):
@@ -337,8 +478,8 @@ def setAccount(s,ellis,gui):
 
 	configAccountValue(gui,ellis)
 
+def read_stream(ui,target,putTarget,spyReport):
 
-def read_stream(ui,target,putTarget):
 	while(target.state == -1):
 		time.sleep(1)
 		print "Steam is Sleeping"
@@ -356,6 +497,7 @@ def read_stream(ui,target,putTarget):
 	insideSym = ""
 	s = requests.Session()
 	s.auth = OAuth1(constant.ALLY_CONSUMER_KEY, constant.ALLY_CONSUMER_SECRET, constant.OAUTH_TOK, constant.OAUTH_TOK_SEC, signature_type='auth_header',timestamp="0")
+	#symbols = ["SPY"]
 	symbols = [target.name,putTarget.name]
 	#symbols = ["SPY181107C00277000","SPY181107P00271500"]
 	payload = {'symbols': ','.join(symbols)}
@@ -369,9 +511,9 @@ def read_stream(ui,target,putTarget):
 		if line:
 			#print line
 			l = list(line)
-			parseStream(ui,temp,a,b,l,insideAsk,insideBid,insideSym,buffBid,buffAsk,buffSym,ask,bid,sym,target,putTarget)
+			parseStream(ui,temp,a,b,l,insideAsk,insideBid,insideSym,buffBid,buffAsk,buffSym,ask,bid,sym,target,putTarget,spyReport)
 
-def parseStream(ui,temp,a,b,l,insideAsk,insideBid,insideSym,buffBid,buffAsk,buffSym,ask,bid,sym,target,putTarget):
+def parseStream(ui,temp,a,b,l,insideAsk,insideBid,insideSym,buffBid,buffAsk,buffSym,ask,bid,sym,target,putTarget,spyReport):
 	for i in l:
 				if insideSym == True:
 					if i == "<":
@@ -501,6 +643,13 @@ def parseStream(ui,temp,a,b,l,insideAsk,insideBid,insideSym,buffBid,buffAsk,buff
 	target.mid = round((float(target.ask) + float(target.bid))/2,2)
 	putTarget.mid = round((float(putTarget.ask) + float(putTarget.bid))/2,2)
 
+	time.sleep(0.2)
+
+	appendTo(spyReport[0],str(target.bid))
+	appendTo(spyReport[1],str(target.ask) )
+	appendTo(spyReport[2],str(putTarget.bid) )
+	appendTo(spyReport[3],str(putTarget.ask) )
+
 def configAccountValue(gui,ellis):
 	gui.accountPrice.config(text=str(ellis.value))
 
@@ -519,8 +668,8 @@ def writeTo(file,value):
 
 def appendTo(file,value):
 	fp = open(file,"a")
-	fp.write("\n")
 	fp.write(value)
+	fp.write("\n")
 	fp.close()
 
 

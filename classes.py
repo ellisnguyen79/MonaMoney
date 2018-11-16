@@ -22,6 +22,9 @@ class spend:
 	cost = 0.0
 	size = 0
 	isSold = False
+	win = 0
+	lose = 0
+	total = 0.0
 
 class option:
 	tick = "SPY"

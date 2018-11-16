@@ -1,50 +1,28 @@
-import xml.etree.ElementTree as ET
-import requests
-import json
-import time
-import threading 
-import time
-
-import sys
-sys.path.insert(0, '../')
-import constant
-import func
-
-from requests_oauthlib import OAuth1Session
-from requests_oauthlib import OAuth1
-
-from classes import *
+import matplotlib.pyplot as plt
+import matplotlib.animation as ani
 from Tkinter import *
 
-#class
-ellis = User()
-target = info()
-putTarget = info()
-opt = option()
-ui = gui()
-item = spend()
-out = "report.txt"
-raw = "info.txt"
-fakeOut = "fakereport.txt"
-fakeRaw = "fakeinfo.txt"
+fig = plt.figure()
+ax1 = fig.add_subplot(111)
 
-#data
-ref = OAuth1Session(constant.ALLY_CONSUMER_KEY,client_secret=constant.ALLY_CONSUMER_SECRET,resource_owner_key=constant.OAUTH_TOK,resource_owner_secret=constant.OAUTH_TOK_SEC)
+file = "spyAsk.txt"
+arr = []
+hold = []
 
-xml = """<?xml version="1.0" encoding="UTF-8"?>
-<FIXML xmlns="http://www.fixprotocol.org/FIXML-5-0-SP2">
-  <Order TmInForce="0" Typ="1" Side="1" Acct="60761352">
-    <Instrmt SecTyp="CS" Sym="GE"/>
-    <OrdQty Qty="1"/>
-  </Order>
-</FIXML> """
-
-#main
-
-if __name__ == "__main__":
-
-	print "Seq"
-
-	
-
-
+line = open(file,"r").read()
+for l in line:
+	if l != '\n':
+		hold.append(l)
+	if l == '\n':
+		i = "".join(hold)
+		if i != "0.0":
+			arr.append(i)
+		for i in range(len(hold)):
+			hold[i] = ""
+def refresh(i):
+	print "refreshing..."
+	print arr
+	ax1.clear()
+	ax1.plot(arr)
+a = ani.FuncAnimation(fig,refresh,interval=3000)
+plt.show()

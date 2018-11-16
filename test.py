@@ -28,6 +28,7 @@ out = "report.txt"
 raw = "info.txt"
 fakeOut = "fakereport.txt"
 fakeRaw = "fakeinfo.txt"
+spyReport = ["spyBid.txt","spyAsk.txt","pspyBid.txt","pspyAsk.txt"]
 
 #data
 ref = OAuth1Session(constant.ALLY_CONSUMER_KEY,client_secret=constant.ALLY_CONSUMER_SECRET,resource_owner_key=constant.OAUTH_TOK,resource_owner_secret=constant.OAUTH_TOK_SEC)
@@ -60,12 +61,12 @@ if __name__ == "__main__":
 	demo = threading.Thread(target=func.tester, args=(target,putTarget))
 	update = threading.Thread(target=func.updateUI, args=(spend,target,putTarget,ui))
 	b = threading.Thread(target=func.begin, args=(target,putTarget,ref))
-	stream = threading.Thread(target=func.read_stream, args=(ui,target,putTarget))
+	stream = threading.Thread(target=func.read_stream, args=(ui,target,putTarget,spyReport))
 	#t1 = threading.Thread(target=func.readAsk, args=(ref,target,ui.askPrice,spend))
 	#t2 = threading.Thread(target=func.readBid,args=(ref,target,ui.bidPrice,spend))
 	#p1 = threading.Thread(target=func.readPutAsk, args=(ref,putTarget,ui.putaskPrice,spend))
 	#p2 = threading.Thread(target=func.readPutBid,args=(ref,putTarget,ui.putbidPrice,spend))
-	t3 = threading.Thread(target=func.findBuy,args=(target,spend,ui,ellis,fakeOut,fakeRaw))
+	t3 = threading.Thread(target=func.findBuy,args=(target,putTarget,spend,ui,ellis,fakeOut,fakeRaw))
 	#t4 = threading.Thread(target=func.calcProfit,args=(gui,spend,target))
 	#t5 = threading.Thread(target=func.setMid,args=(target,gui.midPrice))
 	#t6 = threading.Thread(target=func.setState,args=(ui,target))
