@@ -21,6 +21,7 @@ from Tkinter import *
 ellis = User()
 target = info()
 putTarget = info()
+spy = info()
 opt = option()
 ui = gui()
 item = spend()
@@ -28,7 +29,7 @@ out = "report.txt"
 raw = "info.txt"
 fakeOut = "fakereport.txt"
 fakeRaw = "fakeinfo.txt"
-spyReport = ["spyBid.txt","spyAsk.txt","pspyBid.txt","pspyAsk.txt"]
+spyReport = ["spyBid.txt","spyAsk.txt","pspyBid.txt","pspyAsk.txt","spyQB.txt","spyQA.txt"]
 
 #data
 ref = OAuth1Session(constant.ALLY_CONSUMER_KEY,client_secret=constant.ALLY_CONSUMER_SECRET,resource_owner_key=constant.OAUTH_TOK,resource_owner_secret=constant.OAUTH_TOK_SEC)
@@ -50,8 +51,8 @@ def run():
 	b.start()
 	stream.start()
 	update.start()
-	t3.start()
-	t8.start()
+	#t3.start()
+	#t8.start()
 	ui.top.mainloop()
 
 #main
@@ -61,7 +62,7 @@ if __name__ == "__main__":
 	demo = threading.Thread(target=func.tester, args=(target,putTarget))
 	update = threading.Thread(target=func.updateUI, args=(spend,target,putTarget,ui))
 	b = threading.Thread(target=func.begin, args=(target,putTarget,ref))
-	stream = threading.Thread(target=func.read_stream, args=(ui,target,putTarget,spyReport))
+	stream = threading.Thread(target=func.read_stream, args=(ui,target,putTarget,spy,spyReport))
 	#t1 = threading.Thread(target=func.readAsk, args=(ref,target,ui.askPrice,spend))
 	#t2 = threading.Thread(target=func.readBid,args=(ref,target,ui.bidPrice,spend))
 	#p1 = threading.Thread(target=func.readPutAsk, args=(ref,putTarget,ui.putaskPrice,spend))
@@ -75,6 +76,9 @@ if __name__ == "__main__":
 
 
 	run()
+
+	#r = ref.get(constant.SPY_Quote + "SPY181126C00266500")
+	#print r.content
 
 
 

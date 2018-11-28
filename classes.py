@@ -10,6 +10,8 @@ class info:
 	ask = 0.0
 	bid = 0.0
 	mid = 0.0
+	pre_ask = 0.0
+	pre_bid = 0.0
 	support = 0.0
 	resist = 0.0
 	state = -1

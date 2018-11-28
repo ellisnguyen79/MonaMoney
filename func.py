@@ -129,6 +129,7 @@ def findNewOption(ref):
 	r = ref.get(constant.strike_url)
 	p = ref.get(constant.expire_url)
 	#print s,r,p
+	#print r.content
 	root = ET.fromstring(r.content)
 	poot = ET.fromstring(p.content)
 	soot = ET.fromstring(s.content)
@@ -172,19 +173,27 @@ def findNewOption(ref):
 
 	for i in range(len(calllist)):
 		q = ref.get(constant.SPY_Quote+calllist[i])
-		#print constant.SPY_Quote+calllist[0]
+
+		#print constant.SPY_Quote+calllist[i]
+		#print q.content
+
 		qoot = ET.fromstring(q.content)
 		for c in qoot.iter("ask"):
 			if float(c.text) < 1 and qCAll == "":
-				qCAll = calllist[i]
+				if float(c.text) > 0.01:
+					qCAll = calllist[i]
 
 	for i in range(len(putlist)):
 		q = ref.get(constant.SPY_Quote+putlist[i])
-		#print constant.SPY_Quote+calllist[0]
+		
+		#print constant.SPY_Quote+calllist[i]
+		#print q.content
+		
 		qoot = ET.fromstring(q.content)
 		for c in qoot.iter("ask"):
 			if float(c.text) < 1 and qPut == "":
-				qPut = putlist[i]
+				if float(c.text) > 0.01:
+					qPut = putlist[i]
 
 
 	info = qPut,qCAll
@@ -478,27 +487,31 @@ def setAccount(s,ellis,gui):
 
 	configAccountValue(gui,ellis)
 
-def read_stream(ui,target,putTarget,spyReport):
+def read_stream(ui,target,putTarget,spy,spyReport):
 
 	while(target.state == -1):
 		time.sleep(1)
 		print "Steam is Sleeping"
-	temp = ["",""]
+	temp = ["","",""]
 	a = ["","",""]
 	b = ["","",""]
+	c = ["","",""]
 	buffAsk = ""
 	buffBid = ""
 	buffSym = ""
+	buffLast = ""
 	ask = ""
 	bid = ""
+	last = ""
 	sym = ""
 	insideAsk = False
 	insideBid = False
+	insideLast = False
 	insideSym = ""
 	s = requests.Session()
 	s.auth = OAuth1(constant.ALLY_CONSUMER_KEY, constant.ALLY_CONSUMER_SECRET, constant.OAUTH_TOK, constant.OAUTH_TOK_SEC, signature_type='auth_header',timestamp="0")
-	#symbols = ["SPY"]
-	symbols = [target.name,putTarget.name]
+	#symbols = [target.name]
+	symbols = [target.name,putTarget.name,"SPY"]
 	#symbols = ["SPY181107C00277000","SPY181107P00271500"]
 	payload = {'symbols': ','.join(symbols)}
 	headers = {'connection': 'keep-alive', 'content-type': 'application/json', 'x-powered-by': 'Express', 'transfer-encoding': 'chunked'}
@@ -511,27 +524,63 @@ def read_stream(ui,target,putTarget,spyReport):
 		if line:
 			#print line
 			l = list(line)
-			parseStream(ui,temp,a,b,l,insideAsk,insideBid,insideSym,buffBid,buffAsk,buffSym,ask,bid,sym,target,putTarget,spyReport)
+			parseStream(ui,temp,a,b,c,l,insideAsk,insideBid,insideLast,insideSym,buffBid,buffAsk,buffLast,buffSym,ask,bid,last,sym,target,putTarget,spy,spyReport)
 
-def parseStream(ui,temp,a,b,l,insideAsk,insideBid,insideSym,buffBid,buffAsk,buffSym,ask,bid,sym,target,putTarget,spyReport):
+def parseStream(ui,temp,a,b,c,l,insideAsk,insideBid,insideLast,insideSym,buffBid,buffAsk,buffLast,buffSym,ask,bid,last,sym,target,putTarget,spy,spyReport):
+
 	for i in l:
 				if insideSym == True:
 					if i == "<":
-						insideSym = False
-						buffSym = ""
-						if a[2] == "":
-							a[2] = sym
-							a[0] = temp[0]
-							a[1] = temp[1]
-						else:
-							if a[2] != sym:
-								b[2] = sym
-								b[0] = temp[0]
-								b[1] = temp[1]
-							else:
+						#print "sym", sym
+						#print "temp[0]", temp[0]
+						#print "temp[1]", temp[1]
+						#print "last", temp[2]
+
+						if temp[2] == "":
+
+							insideSym = False
+							buffSym = ""
+							#print sym
+							if a[2] == "":
+								a[2] = sym;
 								a[0] = temp[0]
 								a[1] = temp[1]
-						sym = ""
+								temp[0] = ""
+								temp[1] = ""
+							else:
+								if sym != a[2]:
+
+									if b[2] == "":
+										b[2] = sym;
+										b[0] = temp[0]
+										b[1] = temp[1]
+										temp[0] = ""
+										temp[1] = ""
+									else:
+										if sym != b[2]:
+											c[2] = sym;
+											c[0] = temp[0]
+											c[1] = temp[1]
+											temp[0] = ""
+											temp[1] = ""
+										else:
+											b[0] = temp[0]
+											b[1] = temp[1]
+											temp[0] = ""
+											temp[1] = ""
+
+								else:
+									a[0] = temp[0]
+									a[1] = temp[1]
+									temp[0] = ""
+									temp[1] = ""
+
+
+
+							sym = ""
+						else:
+							temp[2] = ""
+							sym = ""
 					else:
 						sym += i
 				else:
@@ -618,37 +667,144 @@ def parseStream(ui,temp,a,b,l,insideAsk,insideBid,insideSym,buffBid,buffAsk,buff
 
 						if buffAsk == "ask>":
 							insideAsk = True
-	#print a,b
-	if a[2] != "":
-		q = list(a[2])
-		if q[9] == 'C':
-			if a[0] != "":
-				target.ask = a[0]
-			if a[1] != "":
-				target.bid = a[1]
-			if b[0] != "":
-				putTarget.ask = b[0]
-			if b[1] != "":
-				putTarget.bid= b[1]
+				if insideLast == True:
+					if i == "<":
+						insideLast = False
+						buffLast = ""
 
-		else:
-			if b[0] != "":
-				target.ask = b[0]
-			if b[1] != "":
-				target.bid = b[1]
-			if a[0] != "":
-				putTarget.ask = a[0]
-			if a[1] != "":
-				putTarget.bid= a[1]
+						#print last
+						temp[2] = last
+						#last = ""
+					else:
+						last += i
+				else:
+					if buffLast == "":
+						if i == "l":
+							buffLast += i
+					else:
+						if buffLast == "l":
+							if i == "a":
+								buffLast += i
+						if buffLast == "la":
+							if i == "s":
+								buffLast += i
+						if buffLast == "las":
+							if i == "t":
+								buffLast += i
+						if buffLast == "last":
+							if i == ">":
+								buffLast += i
+						if buffLast == "last>":
+							insideLast = True
+	#print a,b,c
+	if a[2] == "SPY":
+		spy.ask = a[0]
+		spy.bid = a[1]
+
+		if b[2] != "":
+			q = list(b[2])
+			if q[9] == 'C':
+				if b[0] != "":
+					target.ask = b[0]
+				if b[1] != "":
+					target.bid = b[1]
+				if c[0] != "":
+					putTarget.ask = c[0]
+				if c[1] != "":
+					putTarget.bid = c[1]
+			else:
+				if b[0] != "":
+					putTarget.ask = b[0]
+				if b[1] != "":
+					putTarget.bid= b[1]
+				if c[0] != "":
+					target.ask = c[0]
+				if c[1] != "":
+					target.bid = c[1]
+
+	else:
+
+		if b[2] == "SPY":
+			spy.ask = b[0]
+			spy.bid = b[1]
+
+			q = list(a[2])
+			if q[9] == 'C':
+				if a[0] != "":
+					target.ask = a[0]
+				if a[1] != "":
+					target.bid = a[1]
+				if c[0] != "":
+					putTarget.ask = c[0]
+				if c[1] != "":
+					putTarget.bid = c[1]
+
+			else:
+				if a[0] != "":
+					putTarget.ask = a[0]
+				if a[1] != "":
+					putTarget.bid= a[1]
+				if c[0] != "":
+					target.ask = c[0]
+				if c[1] != "":
+					target.bid = c[1]
+
+		if c[2] == "SPY":
+			spy.ask = c[0]
+			spy.bid = c[1]
+			q = list(a[2])
+			if q[9] == 'C':
+				if a[0] != "":
+					target.ask = a[0]
+				if a[1] != "":
+					target.bid = a[1]
+				if b[0] != "":
+					putTarget.ask = b[0]
+				if b[1] != "":
+					putTarget.bid = b[1]
+			else:
+				if a[0] != "":
+					putTarget.ask = a[0]
+				if a[1] != "":
+					putTarget.bid= a[1]
+				if b[0] != "":
+					putTarget.ask = b[0]
+				if b[1] != "":
+					putTarget.bid = b[1]
+
+	
 	target.mid = round((float(target.ask) + float(target.bid))/2,2)
 	putTarget.mid = round((float(putTarget.ask) + float(putTarget.bid))/2,2)
 
-	time.sleep(0.2)
+	if(target.pre_bid != target.bid):
+		if(target.bid != 0.0):
+			appendTo(spyReport[0],str(target.bid))
+		target.pre_bid = target.bid
 
-	appendTo(spyReport[0],str(target.bid))
-	appendTo(spyReport[1],str(target.ask) )
-	appendTo(spyReport[2],str(putTarget.bid) )
-	appendTo(spyReport[3],str(putTarget.ask) )
+	if(target.pre_ask != target.ask):
+		if(target.ask != 0.0):
+			appendTo(spyReport[1],str(target.ask))
+		target.pre_ask = target.ask
+
+	if(putTarget.pre_bid != putTarget.bid):
+		if(putTarget.bid != 0.0):
+			appendTo(spyReport[2],str(putTarget.bid))
+		putTarget.pre_bid = putTarget.bid
+
+	if(putTarget.pre_ask != putTarget.ask):
+		if(putTarget.ask != 0.0):
+			appendTo(spyReport[3],str(putTarget.ask))
+		putTarget.pre_ask = putTarget.ask
+
+	if(spy.pre_bid != spy.bid):
+		if(spy.bid != 0.0):
+			appendTo(spyReport[4],str(spy.bid))
+		spy.pre_bid = spy.bid
+
+	if(spy.pre_ask != spy.ask):
+		if(spy.ask != 0.0):
+			appendTo(spyReport[5],str(spy.ask))
+		spy.pre_ask = spy.ask
 
 def configAccountValue(gui,ellis):
 	gui.accountPrice.config(text=str(ellis.value))
